@@ -7,7 +7,6 @@ class App
     req = Rack::Request.new(env)
     path = req.path
 
-    pp "path = #{path}"
     case path
     when '/'
       root
