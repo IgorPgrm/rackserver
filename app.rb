@@ -7,59 +7,28 @@ class App
     req = Rack::Request.new(env)
     path = req.path
 
-    case path
-    when '/'
-      root
-    when '/time'
+    if path == '/time'
       time_formatter(req)
     else
-      redirect_to_root
+      response(400, { 'Content-Type' => 'text/plain' }, 'wrong path')
     end
   end
 
   private
 
   def time_formatter(req)
-    tf = TimeFormat.new(req)
-    result = tf.call
-    if result
-      success_response(result)
+    date_time = TimeFormat.new(req)
+    date_time.call
+    if date_time.success?
+      response(200, { 'Content-Type' => 'text/plain' }, date_time.date_string)
     else
-      error_response("Parameter missing or set incorrectly \n #{tf.unknown_format}")
+      response(400, { 'Content-Type' => 'text/plain' },
+               "Parameter missing or set incorrectly \n #{date_time.invalid_string}")
     end
-  end
-
-  def success_response(body)
-    response(200, headers, [body])
-  end
-
-  def error_response(body)
-    response(400, headers, [body])
   end
 
   def response(status, header, body)
     Rack::Response.new(body, status, header).finish
-  end
-
-  def status
-    200
-  end
-
-  def headers
-    { 'Content-Type' => 'text/plain' }
-  end
-
-  def body
-    ["Welcome aboard!\n"]
-  end
-
-  def redirect_to_root
-    response(302, { 'Location' => 'http://localhost:9292' }, [])
-  end
-
-  def root
-    response(200, { 'Content-Type' => 'text/html' }, ['Time server', '<br>',
-                                                      '<a href="/time?format=year,month,day">Time?</a>'])
   end
 
 end

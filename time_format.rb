@@ -1,38 +1,41 @@
 class TimeFormat
-  attr_reader :unknown_format
+  attr_reader :date_string, :invalid_string
 
   TIME_FORMAT = { year: '%Y', month: '%m',
                   day: '%d', hour: '%H',
                   minute: '%M', second: '%S' }.freeze
 
   def initialize(req)
-    @unknown_format = ''
+    @invalid_string = ''
+    @success = false
     @req = req
+    @params = req.params['format'].split(',')
   end
 
   def call
-    return if @req.params.empty?
+    time_format = ''
+    return if @params.nil? || @params.empty?
+    return if unknown_format_present?
 
-    formatter(@req.params['format'])
+    @params.each do |p|
+      TIME_FORMAT.map { |k, v| time_format += v if p.to_sym == k }
+      time_format += '-' unless @params.last == p
+    end
+    @date_string = Time.now.strftime(time_format)
+    @success = true
   end
 
-  def formatter(format)
-    formatter = ''
-    return if format.nil? || format.empty?
-
-    query_params = format.split(',')
-    query_params.each do |qp|
-      unless TIME_FORMAT.keys.include?(qp.to_sym)
-        @unknown_format += @unknown_format.empty? ? qp : ", #{qp}"
+  def unknown_format_present?
+    @params&.each do |p|
+      unless TIME_FORMAT.keys.include?(p.to_sym)
+        @invalid_string += @invalid_string.empty? ? p : ", #{p}"
       end
-      TIME_FORMAT.map { |k, v| formatter += v if qp.to_sym == k }
-      formatter += '-' unless query_params.last == qp
     end
+    !@invalid_string.empty?
+  end
 
-    @unknown_format = "Unknown format: #{@unknown_format}" unless @unknown_format.empty?
-    return false unless @unknown_format.empty?
-
-    Time.now.strftime(formatter)
+  def success?
+    @success
   end
 
 end
