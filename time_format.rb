@@ -1,18 +1,12 @@
 class TimeFormat
-  attr_accessor :status, :body, :header
+  attr_reader :unknown_format
 
   def initialize(req)
+    @unknown_format = ''
     @req = req
   end
 
   def call
-    server_time
-  end
-
-  def server_time
-    @body = [Time.now.to_s]
-    @status = 200
-    @header = { 'Content-Type' => 'text/html' }
     return if @req.params.empty?
 
     formatter(@req.params['format'])
@@ -20,7 +14,6 @@ class TimeFormat
 
   def formatter(format)
     formatter = ''
-    unknown_formats = ''
     return if format.nil? || format.empty?
 
     query_params = format.split(',')
@@ -39,19 +32,14 @@ class TimeFormat
                    when 'seconds'
                      ' %S '
                    else
-                     unknown_formats += unknown_formats.empty? ? qp : ", #{qp}"
+                     @unknown_format += @unknown_format.empty? ? qp : ", #{qp}"
                      ''
                    end
     end
-    unknown_formats = "Unknown format: #{unknown_formats}" unless unknown_formats.empty?
-    return unknown_format(unknown_formats) unless unknown_formats.empty?
+    @unknown_format = "Unknown format: #{@unknown_format}" unless @unknown_format.empty?
+    return false unless @unknown_format.empty?
 
-    @body = [Time.now.strftime(formatter)]
-    [@status, @header, @body]
+    Time.now.strftime(formatter)
   end
 
-  def unknown_format(unknown)
-    @status = 400
-    @body = [unknown]
-  end
 end

@@ -22,8 +22,20 @@ class App
 
   def time_formatter(req)
     tf = TimeFormat.new(req)
-    tf.call
-    response(tf.status, tf.header, tf.body)
+    result = tf.call
+    if result
+      success_response(result)
+    else
+      error_response("Parameter missing or set incorrectly \n #{tf.unknown_format}")
+    end
+  end
+
+  def success_response(body)
+    response(200, headers, [body])
+  end
+
+  def error_response(body)
+    response(400, headers, [body])
   end
 
   def response(status, header, body)
@@ -47,15 +59,12 @@ class App
   end
 
   def redirect_to_root
-    @status = 302
-    @header = { 'Location' => 'http://localhost:9292' }
-    @body = []
-    response(@status, @header, @body)
+    response(302, { 'Location' => 'http://localhost:9292' }, [])
   end
 
   def root
-    @body = ['Time server', '<br>', '<a href="/time?format=year,month,day">Time?</a>']
-    response(200, { 'Content-Type' => 'text/html' }, @body)
+    response(200, { 'Content-Type' => 'text/html' }, ['Time server', '<br>',
+                                                      '<a href="/time?format=year,month,day">Time?</a>'])
   end
 
 end
