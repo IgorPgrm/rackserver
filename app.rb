@@ -4,11 +4,11 @@ require_relative 'time_format'
 class App
 
   def call(env)
-    req = Rack::Request.new(env)
-    path = req.path
+    request = Rack::Request.new(env)
+    path = request.path
 
     if path == '/time'
-      time_formatter(req)
+      get_time(request)
     else
       response(400, { 'Content-Type' => 'text/plain' }, 'wrong path')
     end
@@ -16,19 +16,23 @@ class App
 
   private
 
-  def time_formatter(req)
+  def get_time(req)
     date_time = TimeFormat.new(req)
     date_time.call
     if date_time.success?
-      response(200, { 'Content-Type' => 'text/plain' }, date_time.date_string)
+      response(200, header, date_time.date_string)
     else
-      response(400, { 'Content-Type' => 'text/plain' },
+      response(400, header,
                "Parameter missing or set incorrectly \n #{date_time.invalid_string}")
     end
   end
 
   def response(status, header, body)
     Rack::Response.new(body, status, header).finish
+  end
+
+  def header
+    { 'Content-Type' => 'text/plain' }
   end
 
 end

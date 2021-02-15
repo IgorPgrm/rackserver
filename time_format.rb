@@ -7,35 +7,31 @@ class TimeFormat
 
   def initialize(req)
     @invalid_string = ''
-    @success = false
     @req = req
     @params = req.params['format'].split(',')
   end
 
   def call
-    time_format = ''
     return if @params.nil? || @params.empty?
-    return if unknown_format_present?
 
-    @params.each do |p|
-      TIME_FORMAT.map { |k, v| time_format += v if p.to_sym == k }
-      time_format += '-' unless @params.last == p
-    end
+    time_format = params_parser
+    return unless success?
+
     @date_string = Time.now.strftime(time_format)
-    @success = true
   end
 
-  def unknown_format_present?
-    @params&.each do |p|
-      unless TIME_FORMAT.keys.include?(p.to_sym)
-        @invalid_string += @invalid_string.empty? ? p : ", #{p}"
-      end
+  def params_parser
+    time_format = ''
+    @params.each do |p|
+      TIME_FORMAT.map { |k, v| time_format += v if p.to_sym == k }
+      @invalid_string += @invalid_string.empty? ? p : ", #{p}" unless TIME_FORMAT.include?(p.to_sym)
+      time_format += '-' unless @params.last == p
     end
-    !@invalid_string.empty?
+    time_format
   end
 
   def success?
-    @success
+    @invalid_string.empty?
   end
 
 end
