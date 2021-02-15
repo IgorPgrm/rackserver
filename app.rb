@@ -41,10 +41,6 @@ class App
     Rack::Response.new(body, status, header).finish
   end
 
-  def perform_request
-    sleep rand(2..3)
-  end
-
   def status
     200
   end

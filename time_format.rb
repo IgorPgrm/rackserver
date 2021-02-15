@@ -30,7 +30,6 @@ class TimeFormat
     end
 
     @unknown_format = "Unknown format: #{@unknown_format}" unless @unknown_format.empty?
-    pp "UNKN FORMAT found #{@unknown_format}"
     return false unless @unknown_format.empty?
 
     Time.now.strftime(formatter)
