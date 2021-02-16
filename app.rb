@@ -10,7 +10,7 @@ class App
     if path == '/time'
       get_time(request)
     else
-      response(400, { 'Content-Type' => 'text/plain' }, 'wrong path')
+      response(400, 'wrong path')
     end
   end
 
@@ -20,19 +20,15 @@ class App
     date_time = TimeFormat.new(req)
     date_time.call
     if date_time.success?
-      response(200, header, date_time.date_string)
+      response(200, date_time.date_string)
     else
-      response(400, header,
+      response(400,
                "Parameter missing or set incorrectly \n #{date_time.invalid_string}")
     end
   end
 
-  def response(status, header, body)
-    Rack::Response.new(body, status, header).finish
-  end
-
-  def header
-    { 'Content-Type' => 'text/plain' }
+  def response(status, body)
+    Rack::Response.new(body, status, { 'Content-Type' => 'text/plain' }).finish
   end
 
 end

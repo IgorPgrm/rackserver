@@ -1,37 +1,36 @@
 class TimeFormat
-  attr_reader :date_string, :invalid_string
 
   TIME_FORMAT = { year: '%Y', month: '%m',
                   day: '%d', hour: '%H',
                   minute: '%M', second: '%S' }.freeze
 
   def initialize(req)
-    @invalid_string = ''
-    @req = req
+    @invalid_params = []
+    @valid_params = []
     @params = req.params['format'].split(',')
+    @time_format = ''
   end
 
   def call
     return if @params.nil? || @params.empty?
 
-    time_format = params_parser
-    return unless success?
-
-    @date_string = Time.now.strftime(time_format)
-  end
-
-  def params_parser
-    time_format = ''
-    @params.each do |p|
-      TIME_FORMAT.map { |k, v| time_format += v if p.to_sym == k }
-      @invalid_string += @invalid_string.empty? ? p : ", #{p}" unless TIME_FORMAT.include?(p.to_sym)
-      time_format += '-' unless @params.last == p
+    @params.each do |param|
+      TIME_FORMAT.map { |key, value| @time_format += value if param.to_sym == key }
+      @invalid_params << param unless TIME_FORMAT.include?(param.to_sym)
+      @time_format += '-' unless @params.last == param
     end
-    time_format
   end
 
   def success?
-    @invalid_string.empty?
+    @invalid_params.empty?
+  end
+
+  def invalid_string
+    @invalid_params.join(', ')
+  end
+
+  def date_string
+    Time.now.strftime(@time_format)
   end
 
 end
