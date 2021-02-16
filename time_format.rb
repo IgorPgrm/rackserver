@@ -8,16 +8,13 @@ class TimeFormat
     @invalid_params = []
     @valid_params = []
     @params = req.params['format'].split(',')
-    @time_format = ''
   end
 
   def call
     return if @params.nil? || @params.empty?
 
     @params.each do |param|
-      TIME_FORMAT.map { |key, value| @time_format += value if param.to_sym == key }
-      @invalid_params << param unless TIME_FORMAT.include?(param.to_sym)
-      @time_format += '-' unless @params.last == param
+      TIME_FORMAT[param.to_sym].nil? ? @invalid_params << param : @valid_params << TIME_FORMAT[param.to_sym]
     end
   end
 
@@ -30,7 +27,7 @@ class TimeFormat
   end
 
   def date_string
-    Time.now.strftime(@time_format)
+    Time.now.strftime(@valid_params.join('-'))
   end
 
 end
